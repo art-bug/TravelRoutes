@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" integrity="sha384-9aIt2nRpC12Uk9gS9baDl411NQApFmC26EwAOH8WgZl5MYYxFfc+NcPb1dKGj7Sk" crossorigin="anonymous">
+
+    <title>Optimal travel routes demo</title>
+    <style>
+      .card {
+        margin-top: 12pt;
+        margin-bottom: 12pt;
+      }
+
+      #routes-not-found {
+        margin-bottom: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container-fluid d-flex vh-100 flex-column">
+        <div class="row vh-100 align-items-center justify-content-center">
+          <form method="get" action="{% url 'load_circular_routes' %}">
+            {% csrf_token %}
+            <select id="usa-city-select" name="city" onchange="form.submit();">
+              <option value="none" hidden="">Выберите город США</option>
+              {% for city, city_index in usa_cities %}
+                <option value="{{ city_index }}">{{ city }}</option>
+              {% endfor %}
+            </select>
+          </form>
+        </div>
+        {% if travel_circular_routes.object_list %}
+          <div class="row vh-100 align-items-center justify-content-center" id="circular_routes">
+            {% for route, score in travel_circular_routes.object_list %}
+                <div class="card text-center">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ route }}</h6>
+                  </div>
+                  <div class="card-footer text-muted">
+                    Балл: {{ score }}
+                  </div>
+                </div>
+            {% endfor %}
+          </div>
+          <div class="row vh-100 align-items-center justify-content-center" id="circular_routes_pagination">
+            {% if is_paginated %}
+              <nav aria-label="Circular route page navigation">
+                <ul class="pagination">
+                  <li class="page-item {% if not prev_url %} disabled {% endif %}">
+                    <a class="page-link" href="{{ prev_url }}" aria-label="Previous">
+                      <span aria-hidden="true">&laquo;</span>
+                      <span class="sr-only">Предыдущие</span>
+                    </a>
+                  </li>
+
+                  {% for page_number in travel_circular_routes.paginator.page_range %}
+                    {% if page_number == travel_circular_routes.number %}
+                      <li class="page-item active">
+                        <a class="page-link" href="{% url 'get_circular_routes' %}?page={{ page_number }}">
+                          {{ page_number }}
+                          <span class="sr-only"> (current)</span>
+                        </a>
+                      </li>
+                    {% elif page_number > travel_circular_routes.number|add:-5 and page_number < travel_circular_routes.number|add:5 %}
+                      <li class="page-item">
+                        <a class="page-link" href="{% url 'get_circular_routes' %}?page={{ page_number }}">{{ page_number }}</a>
+                      </li>
+                    {% endif %}
+                  {% endfor %}
+
+                  <li class="page-item {% if not next_url %} disabled {% endif %}">
+                    <a class="page-link" href="{{ next_url }}" aria-label="Next">
+                      <span aria-hidden="true">&raquo;</span>
+                      <span class="sr-only">Следующие</span>
+                    </a>
+                  </li>
+                </ul>
+              </nav>
+            {% endif %}
+          </div>
+        {% elif not just_loaded %}
+          <div class="row vh-100 text-muted align-items-center justify-content-center">
+            <h5 id="routes-not-found">Кольцевые маршруты не найдены.</h5>
+          </div>
+        {% endif %}
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js" integrity="sha384-OgVRvuATP1z7JjHLkuOU7Xw704+h835Lr+6QL9UvYjZE3Ipu6Tp75j7Bh/kR0JKI" crossorigin="anonymous"></script>
+  </body>
+</html>
